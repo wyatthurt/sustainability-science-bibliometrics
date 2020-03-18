@@ -1,0 +1,169 @@
+---
+title: "Working Paper Citation Analysis"
+author: "Wyatt Hurt"
+date: "3/16/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(encoding="UTF-8")
+library(dplyr)
+library(janitor)
+library(gt)
+library(bib2df)
+library(tidyverse)
+```
+
+## Data Cleaning
+```{r import sust_sci zotero}
+
+# Used the approach outlined here: https://marionlouveaux.fr/blog/bibliography-analysis/
+
+# Used this extraction tool to extract RDF from Word docx: https://rintze.zelle.me/ref-extractor/ 
+
+extracted_citations <- bib2df("raw_data/extracted_citations_long.bib") %>%
+  clean_names() %>%
+  select(category,bibtexkey, address, annote, author, booktitle, chapter, crossref, edition, editor, institution, journal, month, number, organization, pages, publisher, series, title, type, volume, year, url, doi, abstract, urldate, keywords, file, issn, isbn, pmid, annote_1, annote_2) %>%
+  rowwise() %>%
+  mutate(author_1 = author[1],
+         author_2 = author[2],
+         author_3 = author[3],
+         author_4 = author[4],
+         author_5 = author[5],
+         author_6 = author[6],
+         author_7 = author[7],
+         author_8 = author[8],
+         author_9 = author[9],
+         author_10 = author[10],
+         author_11 = author[11],
+         author_12 = author[12],
+         author_13 = author[13],
+         author_14 = author[14],
+         author_15 = author[15],
+         author_16 = author[16],
+         author_17 = author[17],
+         author_18 = author[18],
+         author_19 = author[19],
+         author_20 = author[20],
+         author_21 = author[21],
+         author_22 = author[22],
+         author_23 = author[23],
+         author_24 = author[24],
+         author_25 = author[25],
+         author_26 = author[26],
+         author_27 = author[27],
+         author_28 = author[28],
+         author_29 = author[29],
+         author_30 = author[30],
+         author_31 = author[31],
+         author_32 = author[32],
+         author_33 = author[33],
+         author_34 = author[34],
+         author_35 = author[35],
+         author_36 = author[36],
+         author_37 = author[37],
+         author_38 = author[38],
+         author_39 = author[39],
+         author_40 = author[40],
+         author_41 = author[41],
+         author_42 = author[42],
+         author_43 = author[43],
+         author_44 = author[44],
+         author_45 = author[45],
+         author_46 = author[46],
+         author_47 = author[47],
+         author_48 = author[48],
+         author_49 = author[49],
+         author_50 = author[50],
+         author_51 = author[51],
+         author_52 = author[52],
+         author_53 = author[53],
+         author_54 = author[54],
+         author_55 = author[55],
+         author_56 = author[56],
+         author_57 = author[57],
+         author_58 = author[58],
+         author_59 = author[59],
+         author_60 = author[60],
+         author_61 = author[61],
+         author_62 = author[62],
+         author_63 = author[63],
+         author_64 = author[64],
+         author_65 = author[65],
+         author_66 = author[66],
+         author_67 = author[67],
+         author_68 = author[68],
+         author_69 = author[69],
+         author_70 = author[70],
+         author_71 = author[71],
+         author_72 = author[72],
+         author_73 = author[73],
+         author_74 = author[74],
+         author_75 = author[75],
+         author_76 = author[76],
+         author_77 = author[77],
+         author_78 = author[78],
+         author_79 = author[79],
+         author_80 = author[80],
+         author_81 = author[81],
+         author_82 = author[82],
+         author_83 = author[83],
+         author_84 = author[84]
+         ) %>%
+  pivot_longer(author_1:author_84, names_to = "author_number", values_to = "author_name") %>%
+  filter(!is.na(author_name))
+```
+
+```{r most_cited_authors}
+extracted_citations %>%
+  group_by(author_name) %>%
+  summarize(author_ct = n()) %>%
+  arrange(desc(author_ct)) %>%
+  filter(author_ct > 1) %>%
+  gt() %>%
+  cols_label(author_name = "Author Name", author_ct = "Times Cited") %>%
+  tab_header(title = "Most Cited Authors", subtitle = "All scholars cited more than 1 time are listed") %>%
+  tab_footnote(
+    "In total, 1342 authors were cited.", 
+    cells_title(groups = c("title"))
+    )
+```
+
+```{r most_cited_journals}
+extracted_citations %>%
+  distinct(bibtexkey, journal) %>%
+  group_by(journal) %>%
+  summarize(journal_ct = n()) %>%
+  arrange(desc(journal_ct)) %>%
+  filter(journal_ct > 1) %>%
+  gt() %>%
+  cols_label(journal = "Journal Title", journal_ct = "Times Cited") %>%
+  tab_header(title = "Most Cited Journals", subtitle = "All journals cited more than 1 time are listed") %>%
+  tab_footnote(
+    "In total, 1342 authors were cited.", 
+    cells_title(groups = c("title"))
+    )
+```
+
+```{r year_histogram}
+extracted_citations %>%
+  distinct(bibtexkey, year) %>%
+ggplot(aes(year)) + geom_histogram(stat = "count", binwidth = 1) + 
+  theme_classic() + 
+  labs(title = "Distribution of Citation Publication Years") + 
+  xlab("Year") + 
+  ylab("Count") + 
+  scale_x_continuous(breaks = c(1955, 1960, 1965, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020))
+```
+
+```{r}
+extracted_citations <- bib2df("raw_data/extracted_citations_long.bib") %>%
+  clean_names() %>%
+  select(doi) %>%
+  filter(!is.na(doi)) %>%
+  write_csv("extracted_citation_dois_long.csv")
+
+# 420 extracted references
+# 246 have DOI and are in Web of Science
+```
