@@ -1,12 +1,16 @@
 ---
-title: 'Memo: Sustainability Science Citation Analysis (v1)'
+title: 'Memo: Analysis of *Clark and Harley (2019)* Citations (v1)'
 author: "Wyatt Hurt"
-date: "03/16/2020"
-output: html_document
+date: "03/18/2020"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+classoption: landscape
 to: Bill Clark and Alicia Harley
 ---
 
-As requested by Alicia Harley on March 11, this paper provides a broad-scope analysis of the citations in *Sustainability Science: Toward a Synthesis (Harvard Sustainability Science Program Working Paper 2019-01)*. I would be happy to expand upon any sections of this memo further, if it would be helpful. 
+As requested by Alicia Harley on March 11, this paper provides a broad-scope analysis of the citations in *Sustainability Science: Toward a Synthesis (Harvard Sustainability Science Program Working Paper 2019-01)*. Please consider this memo a draft; I would be happy to expand upon or refine any of its contents, if it would be helpful.
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(janitor)
@@ -32,32 +36,35 @@ results <- biblioAnalysis(M, sep = ";")
 # plot(x = results, k = 10, pause = FALSE)
 ```
 ## Method
-I used a [REF extractor script](https://rintze.zelle.me/ref-extractor/) to extract the Zotero citations from the paper's .docx file. Then, I extracted the DOIs from this file and imported them into Web of Science, creating a marked list, which I exported to a .bib file. From there, I read the .bib file into R and analyzed it using the [bibliometrix() package](https://www.bibliometrix.org/). 
+I used an [REF extractor script](https://rintze.zelle.me/ref-extractor/) to extract the Zotero citations from the paper's .docx file. Then, I extracted the DOIs from this file using the 'wp_zotero_citation_analysis.Rmd' script and imported them into Web of Science. From there, I created a marked list, which I exported to a .bib file. Finally, I read the .bib file into 'wp_citation_analysis.Rmd' and analyzed it using the [bibliometrix() package](https://www.bibliometrix.org/). 
 
 The original paper cites 420 articles, 246 of which had DOIs assigned within our shared sust_sci Zotero. This memo only analyzes the 246 articles which had DOIs assigned. I would be happy to manually assign DOIs to the appropriate Zotero articles and re-run the analysis script, if that would be helpful. 
 
-Please use the tabs below to navigate through the different metrics. And, please excuse the rather messy formatting in some places (I am learning R, and am still trying to understand the nuances of presenting data outside of the Microsoft Office Suite). 
+If you are viewing the HTML version, please use the tabs below to navigate through different metrics. Please excuse the rather clunky formatting in some places (I am still trying to understand the nuances of presenting data in R). 
 
 ## First-Order Citation Trends {.tabset .tabset-fade}
 ### Temporal Trends
-As the graph below shows, most citations were published within the last five years. The median publication year is 2017. The median publication year is 2015.86.
+As the graph below shows, most citations were published within the last five years. The median publication year is 2017. The median publication year is 2015.86. Each bar represents 1 year (binwidth = 1).
 <br>
+
 ```{r years}
 years <- enframe(results$Years)
 
-years %>%
+graph <- years %>%
 ggplot(aes(value)) + geom_histogram(stat = "count", binwidth = 1, fill = "dodgerblue3") + 
   theme_classic() + 
-  labs(title = "Distribution of Citations Publication Years") + 
+  labs(title = "Distribution of Citation Publication Years") + 
   xlab("Year") + 
   ylab("Count") + 
   scale_x_continuous(breaks = c(1955, 1960, 1965, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020))
 
 # mean(years$value, na.rm = TRUE)
+
+graph
 ```
 
 ### Authors
-This list includes all authors listed on all citations (not just first or second authors) that were cited more than twice by Clark and Harley (2019). 
+The table below includes all authors that were cited more than twice by Clark and Harley (2019). Note that all authors listed on all citations were included in this analysis (not just first or second authors).
 <br>
 ```{r authors}
 authors <- enframe(results$Authors)
@@ -67,15 +74,11 @@ authors %>%
   filter(author_ct > 2) %>%
   gt() %>%
   cols_label(name = "Author Name", author_ct = "Times Cited") %>%
-  tab_header(title = "Most Frequently Cited Authors") %>%
-  tab_footnote(
-    "All scholars cited more than 2 times are listed.", 
-    cells_title(groups = c("title"))
-    )
+  tab_header(title = "Most Frequently Cited Authors", subtitle = "All authors cited more than 2 times are listed.")
 ```
 
 ### Geographies
-Following standard bibliometric procedure, I use the corresponding author's "affiliated country" in Web of Science to assign a country ID to each citation. The table below lists all countries cited by Clark and Harley (2019).
+Following standard bibliometric procedure, I used the corresponding author's "affiliated country" in Web of Science to assign a country ID to each citation. The table below lists all countries cited by Clark and Harley (2019).
 <br>
 ```{r countries}
 
@@ -85,11 +88,11 @@ countries %>%
   rename(country_ct = value) %>%
   gt() %>%
   cols_label(name = "Country", country_ct = "Times Cited") %>%
-  tab_header(title = "Most Frequently Cited Countries")
+  tab_header(title = "Most Frequently Cited Countries", subtitle = "All countries are listed (no min. threshold.")
 ```
 
 ### Institutions
-Again following standard bibliometric procedure, I use the corresponding author's "affiliated institution" in Web of Science to assign an institutional ID to each citation. The table below lists all institutions cited by Clark and Harley (2019).
+Again following standard bibliometric procedures, I use the corresponding author's "affiliated institution" in Web of Science to assign an institutional ID to each citation. The table below lists all institutions cited more than twice by Clark and Harley (2019).
 <br>
 ```{r affiliations}
 
@@ -99,14 +102,15 @@ affiliations %>%
   group_by(value) %>%
   summarize(affiliation_ct = n()) %>%
   filter(affiliation_ct > 2) %>%
+  filter(value != "NA") %>%
   arrange(desc(affiliation_ct)) %>%
   gt() %>%
   cols_label(value = "Institution", affiliation_ct = "Times Cited") %>%
-  tab_header(title = "Most Frequently Cited Institutions")
+  tab_header(title = "Most Frequently Cited Institutions", subtitle = "All institutions cited more than 2 times are listed.")
 ```
 
 ### Journals
-The table below lists all journals cited more than once by Clark and Harley (2019).
+The table below lists all journals cited more than once by Clark and Harley (2019). Note that Web of Science disaggregates *Annual Reviews* into its separate volumes, which I can correct in future analyses.
 <br>
 ```{r journals}
 
@@ -117,15 +121,11 @@ journals %>%
   filter(journal_ct > 1) %>%
   gt() %>%
   cols_label(name = "Journal", journal_ct = "Times Cited") %>%
-  tab_header(title = "Most Cited Journals")  %>%
-  tab_footnote(
-    "Note that Web of Science disaggregates ARER into its separate volumes. This can be corrected with a modification to the R script in future analyses.", 
-    cells_title(groups = c("title"))
-    )
+  tab_header(title = "Most Frequently Cited Journals", subtitle = "Note that Web of Science disaggregates Annual Reviews into its separate volumes.")
 ```
 
 ### Keywords
-The table below lists the author keywords assigned to more than two citations.
+The table below lists the author keywords assigned to five or more articles cited by Clark and Harley (2019).
 <br>
 ```{r keywords}
 
@@ -133,18 +133,14 @@ keywords <- enframe(results$ID)
 
 keywords %>%
   rename(keyword_ct = value) %>%
-  filter(keyword_ct > 2) %>%
+  filter(keyword_ct > 4) %>%
   gt() %>%
   cols_label(name = "Keyword", keyword_ct = "Times Cited") %>%
-  tab_header(title = "Most Cited Keywords") %>%
-  tab_footnote(
-    "All keywords used more than 2 times are listed.", 
-    cells_title(groups = c("title"))
-    )
+  tab_header(title = "Most Frequently Used Author Keywords in Citations", subtitle = "All keywords used 5 or more times are listed.")
 ```
 
-### Citations
-Finally, I ask a slightly different question: What are the articles cited by Clark and Harley (2019) citing themselves? In other words, what are the cited references made by the pool of articles cited by Clark and Harley (2019)? In the bibliometric working paper draft Alicia and I are working on, we ask the same question of pools of papers produced by the Kates reader and ARER over the past 10 years. This could potentially be a very productive area of analysis. For now, I limit my analysis to asking what papers are most cited by this new pool of articles. The table below lists all cited references that are cited more than 50 times by the pool of articles cited by Clark and Harley (2019).
+### Citation Counts
+The table below lists the citation counts (as reported by the Web of Science) for articles cited by Clark and Harley (2019). To be included in the table, an article must have more than 50 citations.
 <br>
 ```{r citations, include = TRUE}
 
@@ -156,20 +152,25 @@ citations %>%
   arrange(desc(tc)) %>%
   filter(tc >= 50) %>%
   gt() %>%
-  cols_label(paper = "Article", tc = "Cited Reference Count") %>%
-  tab_header(title = "Citations' Most Frequently Cited References") %>%
-  tab_footnote(
-    "All cited references cited more than 50 times are listed.", 
-    cells_title(groups = c("title")))
+  cols_label(paper = "Article", tc = "Citation Count") %>%
+  tab_header(title = "Citation Counts", subtitle = "All articles with more than 50 citations are listed.")
 ```
+
+### Cited References
+Another question that might be useful to ask: What are the cited references made by the "pool" of articles cited by Clark and Harley (2019)? In the bibliometric working paper draft Alicia and I are working on, we ask the same question about the "pools" of papers produced by the Kates reader and ARER over the past 10 years. This could potentially be an useful area of analysis. 
+
+Since the pool from Clark and Harley (2019) currently has missing DOIs and might change, I have not yet carried out this analysis. Please let me know if you would like me to; it should only take approximately 1 hour. 
 
 ## Network Analysis {.tabset .tabset-fade}
 Using elementary machine learning, this section analyzes the connections between citations.
 
 ### Co-Citation Network
-Following the approach of Batagelj & Cerinsek (2013) and Aria & Cuccurullo (2017), I conducted co-citation analysis. The network plot shows the 30 articles from the Clark and Harley (2019) "pool" that have been most frequently cited by other articles from the "pool." Note that there are two distinct clusters of articles, indicating that there are two groups of authors speaking to one another, with relatively sparse citations occuring between the two groups. 
+Following the approach of Batagelj & Cerinsek (2013) and Aria & Cuccurullo (2017), I conducted co-citation analysis. The network plot below shows the 30 articles from the Clark and Harley (2019) "pool" that were most frequently cited by other articles from the pool. Thicker lines between articles indicate that they are frequently cited by the same papers (i.e. individual papers frequently cite both). Grey dashed lines indicate co-citation occurs relatively less frequently. Once a group of articles becomes sufficiently interconnected and experiences relatively little co-citation from other articles in "pool", it is split off into a cluster and denoted with a different color.
+
+Note that there are two distinct clusters of articles, indicating that there are two groups of authors speaking to one another, with relatively few citations occuring between the two groups. Apologies that this is slightly difficult to read, I am still working on formatting.
 <br>
-```{r}
+
+```{r co_citation, message = FALSE, warning = FALSE}
 # Create a co-citation network
 
 NetMatrix <- biblioNetwork(M, analysis = "co-citation", network = "references", sep = ";")
@@ -179,20 +180,24 @@ net=networkPlot(NetMatrix, n = 30, Title = "Co-Citation Network", type = "frucht
 ```
 
 ### Historical Citation Network
-The historiographic map is a graph proposed by Garfield (2004) to represent a chronological network map of most relevant direct citations resulting from a bibliographic collection. The map below shows how the 15 most internally-cited papers within the Clark and Harley (2019) "pool" are connected to one another chronologically.
+The historiographic map is a graph proposed by Garfield (2004) to represent a chronological network map of most relevant direct citations resulting from a bibliographic collection. The map below shows how the 15 most co-cited papers within the Clark and Harley (2019) "pool" are connected to one another chronologically.
 <br>
-```{r}
+
+```{r historical_citations, message = FALSE, warning = FALSE}
 # Create a historical citation network
 options(width=130)
 histResults <- histNetwork(M, min.citations = 10, sep = ";")
 # Plot a historical co-citation network
-net <- histPlot(histResults, n=15, size = 15, labelsize=3)
+net=histPlot(histResults, n=15, size = 15, labelsize=3)
 ```
 
 ### Conceptual Structure Map
-Following the approach of Aria & Cuccurullo (2017), I conducted conceptual structure analysis (using correspondence analysis methods). 
+Following the approach of Aria & Cuccurullo (2017), I conducted conceptual structure analysis (using the correspondence analysis method). By using natural language processing to analyze the titles, abstracts, and keywords of all papers cited by Clark and Harley (2019), this analysis attempts to divide author keywords into 5 groups, based on the degree to which their associated papers are most similar. Once a certain degree of dissimilarity is achieved, the program creates a new cluster of keywords. Each group is denoted by a different symbol and color. 
+
+Keywords must be used at least 5 times to be included in the map below. The axes and relative positioning of the keyword groups are unimportant in this analysis; they are merely a side-effect of the way R produces graphs. 
 <br>
-```{r}
+
+```{r conceptual_structure}
 # Conceptual Structure using keywords (method="CA")
 
 CS <- conceptualStructure(M,field="DE", method="CA", minDegree=5, clust=5, stemming=FALSE, labelsize=10, documents=10, graph = FALSE)
@@ -200,18 +205,17 @@ CS <- conceptualStructure(M,field="DE", method="CA", minDegree=5, clust=5, stemm
 CS[["graph_terms"]]
 ```
 
-
-
 ### Country Collaboration
-Finally, I analyzed how authors were collaborating with one another across countries. Using the Web of Science "country affiliation" of all authors of each co-authored paper, I conducted network analysis to answer the following question: When a paper is co-authored, which countries do its co-authors originate from? Thicker lines between the countries below indicate that more scholars from those respective countries co-authored papers together in the Clark and Harley (2019) "pool." Larger circles around a country name indicate that country had more affiliated authors in the Clark and Harley (2019) "pool."
+Finally, I analyzed how authors were collaborating with one another across countries. Using the Web of Science "country affiliation" of all authors of each co-authored paper, I conducted network analysis to answer the following question: When a paper is co-authored, which countries are its co-authors affiliated with? Thicker lines between the countries below indicate that more scholars from those respective countries co-authored papers together in the Clark and Harley (2019) "pool." Larger circles around a country name indicate that country had more affiliated authors in the Clark and Harley (2019) pool. The 20 most-cited countries are included. If you are viewing the PDF version, it will be helpful to zoom in on this map to see the difference in line widths.
 <br>
+
 ```{r country_collaboration}
 M <- metaTagExtraction(M, Field = "AU_CO", sep = ";")
 NetMatrix <- biblioNetwork(M, analysis = "collaboration", network = "countries", sep = ";")
 
 # Plot the network
-net=networkPlot(NetMatrix, n = 15, Title = "Country Collaboration", type = "circle", size=TRUE, remove.multiple=FALSE,labelsize=0.7,cluster="none")
+net=networkPlot(NetMatrix, n = 20, Title = "Country Collaboration", type = "circle", size=TRUE, remove.multiple=FALSE,labelsize=0.7,cluster="none")
 ```
 
 ## Conclusion
-With the power of R and the bibliometrix() package, it is possible to answer almost any bibliometric question that could possibly be asked with just a few lines of code. Please let me know if I can be helpful in answering other questions.
+With the power of R and the bibliometrix() package, it is possible to answer almost any bibliometric question with just a few lines of code. This report can be exported in PDF, HTML, or DOCX format. Please let me know if I can be helpful in answering other questions.
