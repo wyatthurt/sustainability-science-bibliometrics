@@ -35,6 +35,20 @@ results <- biblioAnalysis(M, sep = ";")
 # S <- summary(object = results, k = 10, pause = FALSE)
 # plot(x = results, k = 10, pause = FALSE)
 ```
+
+```{r country_extraction}
+metaTagExtraction(M, Field = "AU_CO", sep = ";") %>%
+  mutate(AU_CO = str_replace(AU_CO, "UNITED KINGDOM", "UK")) %>%
+  separate(AU_CO, c("CO_1", "CO_2", sep = ";"), extra = "merge") %>%
+    select(CO_1, AU, PY, TI, SO, CO_2) %>%
+    arrange(CO_1) %>%
+  gt() %>%
+  cols_label(CO_1 = "Corresponding Author Country", AU = "Authors", PY = "Publication Year", TI = "Title", SO = "Source", CO_2 = "Other Author Countries") %>%
+  tab_header(title = "Article Citations, Sorted by Country", subtitle = "Reports, websites, and books not included.")
+
+```
+
+
 ## Method
 I used an [REF extractor script](https://rintze.zelle.me/ref-extractor/) to extract the Zotero citations from the paper's .docx file. Then, I extracted the DOIs from this file using the 'wp_zotero_citation_analysis.Rmd' script and imported them into Web of Science. From there, I created a marked list, which I exported to a .bib file. Finally, I read the .bib file into 'wp_citation_analysis.Rmd' and analyzed it using the [bibliometrix() package](https://www.bibliometrix.org/). 
 

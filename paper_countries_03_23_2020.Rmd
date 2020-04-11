@@ -1,0 +1,48 @@
+---
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+classoption: landscape
+to: Bill Clark and Alicia Harley
+---
+
+As requested by Alicia Harley on March 22, this brief document lists the journal articles cited by Clark and Harley (2019). Articles are sorted by the corresponding authors' country affiliation in the Web of Science.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(janitor)
+library(gt)
+library(tidyr)
+library(rorcid)
+library(wordcloud2)
+library(tm)
+library(bibliometrix)
+library(tidyverse)
+library(dplyr)
+library(readxl)
+```
+
+```{r bibliometrix_setup, include = FALSE}
+# extracted_citations_doi <- bib2df("raw_data/wos_exports_from_doi_search_long.bib") %>%
+  # clean_names()
+
+D <- readFiles("raw_data/wos_exports_from_doi_search_long.bib")
+M <- convert2df(D, dbsource = "wos", format = "bibtex")
+results <- biblioAnalysis(M, sep = ";")
+# options(width=100)
+# S <- summary(object = results, k = 10, pause = FALSE)
+# plot(x = results, k = 10, pause = FALSE)
+```
+
+```{r country_extraction}
+metaTagExtraction(M, Field = "AU_CO", sep = ";") %>%
+  mutate(AU_CO = str_replace(AU_CO, "UNITED KINGDOM", "UK")) %>%
+  separate(AU_CO, c("CO_1", "CO_2"), sep = ";", extra = "merge") %>%
+  mutate(CO_2 = str_replace_all(CO_2, ";", "; ")) %>%
+    select(CO_1, AU, PY, TI, SO, CO_2) %>%
+    arrange(CO_1) %>%
+  write.csv(file = "paper_countries_03_26_2020.csv")
+  gt() %>%
+  cols_label(CO_1 = "Corresponding Author Country", AU = "Authors", PY = "Publication Year", TI = "Title", SO = "Source", CO_2 = "Other Author Countries") %>%
+  tab_header(title = "Article Citations, Sorted by Country", subtitle = "Reports, websites, and books not included.")
+```

@@ -167,3 +167,14 @@ extracted_citations <- bib2df("raw_data/extracted_citations_long.bib") %>%
 # 420 extracted references
 # 246 have DOI and are in Web of Science
 ```
+
+```{r missing_dois_long}
+extracted_citations <- bib2df("raw_data/extracted_citations_long.bib") %>%
+  clean_names() %>%
+  select(title, journal, year, doi) %>%
+  filter(is.na(doi)) %>%
+  write_csv("missing_citation_dois_long.csv")
+
+# 420 extracted references
+# 246 have DOI and are in Web of Science
+```
