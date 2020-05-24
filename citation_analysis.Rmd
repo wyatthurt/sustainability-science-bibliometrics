@@ -21,16 +21,22 @@ library(wordcloud2)
 library(tm)
 library(bibliometrix)
 library(tidyverse)
-library(dplyr)
 ```
 
 ```{r bibliometrix_setup, include = FALSE}
-# extracted_citations_doi <- bib2df("raw_data/wos_exports_from_doi_search_long.bib") %>%
+# extracted_citations_doi <- bib2df("raw_data_final/wos_export.bib") %>%
   # clean_names()
 
-D <- readFiles("raw_data/wos_exports_from_doi_search_long.bib")
+# For manually-coded data
+
+D <- read_csv("/Users/wyatthurt/Desktop/template.csv")
+results <- biblioAnalysis(D, sep = ";")
+
+D <- readFiles("raw_data_final/wos_export.bib")
 M <- convert2df(D, dbsource = "wos", format = "bibtex")
 results <- biblioAnalysis(M, sep = ";")
+
+write_csv(M, path = "raw_data_final/template.csv")
 # options(width=100)
 # S <- summary(object = results, k = 10, pause = FALSE)
 # plot(x = results, k = 10, pause = FALSE)
@@ -45,7 +51,6 @@ metaTagExtraction(M, Field = "AU_CO", sep = ";") %>%
   gt() %>%
   cols_label(CO_1 = "Corresponding Author Country", AU = "Authors", PY = "Publication Year", TI = "Title", SO = "Source", CO_2 = "Other Author Countries") %>%
   tab_header(title = "Article Citations, Sorted by Country", subtitle = "Reports, websites, and books not included.")
-
 ```
 
 
